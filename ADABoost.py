@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+from metrics import *
+from tree.base import DecisionTree
+from linearRegression import LinearRegression
 
 class AdaBoostClassifier():
     def __init__(self, base_estimator, n_estimators=3): # Optional Arguments: Type of estimator
@@ -87,18 +88,71 @@ class AdaBoostClassifier():
         return pd.Series(final_preds,dtype="category")
         
 
-    def plot(self):
-        """
-        Function to plot the decision surface for AdaBoostClassifier for each estimator(iteration).
-        Creates two figures
-        Figure 1 consists of 1 row and `n_estimators` columns
-        The title of each of the estimator should be associated alpha (similar to slide#38 of course lecture on ensemble learning)
-        Further, the scatter plot should have the marker size corresponnding to the weight of each point.
+N = 30
+P = 2
+NUM_OP_CLASSES = 2
+n_estimators = 3
+X = pd.DataFrame(np.abs(np.random.randn(N, P)))
+y = pd.Series(np.random.randint(NUM_OP_CLASSES, size = N), dtype="category")
 
-        Figure 2 should also create a decision surface by combining the individual estimators
+criteria = 'information_gain'
+tree = DecisionTree(criterion=criteria,max_depth=1)
+Classifier_AB = AdaBoostClassifier(base_estimator=tree, n_estimators=n_estimators )
+Classifier_AB.fit(X, y)
+y_hat = Classifier_AB.predict(X)
+# [fig1, fig2] = Classifier_AB.plot()
+print('Criteria :', criteria)
+print('Accuracy: ', accuracy(y_hat, y))
+for cls in y.unique():
+    print('Precision: ', precision(y_hat, y, cls))
+    print('Recall: ', recall(y_hat, y, cls))
 
-        Reference for decision surface: https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
+print('\nIRIS DATASET')
 
-        This function should return [fig1, fig2]
-        """
-        pass
+##### AdaBoostClassifier on Iris data set using the entire data set with sepal width and petal width as the two features
+dataset = pd.read_csv("tree/iris.data",delimiter=",",header=None)
+a = dataset[1]
+b = dataset[3]
+c = dataset[4]
+d = list(zip(a,b,c))
+np.random.shuffle(d)
+frame = {}
+frame['sepal width'] = []
+frame['petal width'] = []
+y = []
+for i in range(len(d)):
+    frame['sepal width'].append(d[i][0])
+    frame['petal width'].append(d[i][1])
+    y.append(d[i][2])
+X = pd.DataFrame(frame)
+y = pd.Series(y)
+for i in range(len(y)):
+    if (y[i]!='Iris-virginica'):
+        y[i] = 'not virginica'
+N = len(y)
+t = int(np.floor(0.6*N))
+X_train = X.iloc[:t,:]
+y_train = y[:t]
+X_test = X.iloc[t:,:]
+y_test = list(y[t:])
+y_test = pd.Series(y_test)
+criteria = 'information_gain'
+tree = DecisionTree(criterion=criteria,max_depth=1)
+Classifier_AB = AdaBoostClassifier(base_estimator=tree, n_estimators=n_estimators )
+Classifier_AB.fit(X_train, y_train)
+y_hat = Classifier_AB.predict(X_test)
+# [fig1, fig2] = Classifier_AB.plot()
+print('Criteria :', criteria)
+print('Accuracy: ', accuracy(y_hat, y_test))
+for cls in y.unique():
+    print('Precision: ', precision(y_hat, y_test, cls))
+    print('Recall: ', recall(y_hat, y_test, cls))
+
+print("\nDECISION STUMP")
+tree.fit(X_train,y_train,np.ones(N)/N)
+y_hat = tree.predict(X_test)
+print('Criteria :', criteria)
+print('Accuracy: ', accuracy(y_hat, y_test))
+for cls in y.unique():
+    print('Precision: ', precision(y_hat, y_test, cls))
+    print('Recall: ', recall(y_hat, y_test, cls))
