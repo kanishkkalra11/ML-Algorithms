@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 import random
+from metrics import *
+from tree.base import DecisionTree
+# Or use sklearn decision tree
+from sklearn import tree
 
 class BaggingClassifier():
     def __init__(self, base_estimator, n_estimators=100):
@@ -70,19 +74,37 @@ class BaggingClassifier():
                     m = classes[key]
             final_preds.append(finclass)
         return pd.Series(final_preds,dtype="category")
+N = 30
+P = 2
+NUM_OP_CLASSES = 2
+n_estimators = 3
+X = pd.DataFrame(np.abs(np.random.randn(N, P)))
+y = pd.Series(np.random.randint(NUM_OP_CLASSES, size = N), dtype="category")
 
-    def plot(self):
-        """
-        Function to plot the decision surface for BaggingClassifier for each estimator(iteration).
-        Creates two figures
-        Figure 1 consists of 1 row and `n_estimators` columns and should look similar to slide #16 of lecture
-        The title of each of the estimator should be iteration number
+criteria = 'information_gain'
+clf = tree.DecisionTreeClassifier()
+Classifier_B = BaggingClassifier(base_estimator=clf, n_estimators=n_estimators )
+Classifier_B.fit(X, y)
+y_hat = Classifier_B.predict(X)
+# [fig1, fig2] = Classifier_B.plot()
+print('Criteria :', criteria)
+print('Accuracy: ', accuracy(y_hat, y))
+for cls in y.unique():
+    print('Precision: ', precision(y_hat, y, cls))
+    print('Recall: ', recall(y_hat, y, cls))
 
-        Figure 2 should also create a decision surface by combining the individual estimators and should look similar to slide #16 of lecture
 
-        Reference for decision surface: https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
-        This function should return [fig1, fig2]
+a = [1]*8 + [2]*8 + [3]*8 + [4]*8 + [5]*8 + [6]*8 + [7]*8 + [8]*8
+b = [1,2,3,4,5,6,7,8]*8
+c = [0,0,0,0,0,1,1,1]*2 + [0,0,1,0,0,1,1,1] + [0,0,0,0,0,1,1,1] + [0,0,0,0,0,1,1,0] + [1]*24
 
-        """
-        pass
+frame = {'x1':a,'x2':b}
+X = pd.DataFrame(frame)
+y = pd.Series(c)
+
+clf = tree.DecisionTreeClassifier()
+bag = BaggingClassifier(clf,5)
+bag.fit(X,y)
+y_hat = bag.predict(X)
+print('\nAccuracy for dataset in slides: ', accuracy(y_hat, y))
