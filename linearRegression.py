@@ -280,3 +280,19 @@ class LinearRegression():
         ax.contour(theta0_mesh, theta1_mesh, errors, 20,cmap='viridis', edgecolor='none')
         ax.scatter(t_0, t_1,c='r',s=np.pi*4)
         return
+
+np.random.seed(42)
+
+N = 30
+P = 5
+X = pd.DataFrame(np.random.randn(N, P))
+y = pd.Series(np.random.randn(N))
+
+
+for fit_intercept in [True, False]:
+    LR = LinearRegression(fit_intercept=fit_intercept)
+    LR.fit_vectorised(X, y, 1) # here you can use fit_non_vectorised / fit_autograd methods
+    y_hat = LR.predict(X)
+
+    print('RMSE: ', rmse(y_hat, y))
+    print('MAE: ', mae(y_hat, y))    
