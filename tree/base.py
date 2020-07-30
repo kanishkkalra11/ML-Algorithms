@@ -96,20 +96,4 @@ class DecisionTree():
         return pd.Series(y)
 
 
-    def plot(self):
-        """
-        Function to plot the tree
-
-        Output Example:
-        ?(X1 > 4)
-            Y: ?(X2 > 7)
-                Y: Class A
-                N: Class B
-            N: Class C
-        Where Y => Yes and N => No
-        """
-        print("""If {} is less than {}
-            Class {}
-        else
-            Class{}""".format(self.best_feature,self.split_point,self.lt,self.gt))
-        return
+    
